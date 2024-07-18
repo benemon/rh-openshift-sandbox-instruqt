@@ -1,0 +1,11 @@
+version: "3"
+containers:
+- name: bastion
+  image: registry.access.redhat.com/ubi9:latest
+  shell: /bin/bash
+  memory: 256
+azure_subscriptions:
+- name: rh-openshift-sandbox-azure
+  roles:
+  - Contributor
+  - User Access Administrator

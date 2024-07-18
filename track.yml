@@ -1,0 +1,23 @@
+slug: rh-openshift-sandbox
+id: jrjmqbkwfkbt
+title: Red Hat OpenShift Container Platform Sandbox
+description: ""
+icon: ./assets/OpenShift-LogoType.svg
+tags: []
+owner: hashicorp
+developers:
+- ben.holmes@hashicorp.com
+maintenance: true
+idle_timeout: 300
+timelimit: 1200
+lab_config:
+  overlay: false
+  width: 33
+  position: right
+  sidebar_enabled: true
+  feedback_recap_enabled: true
+  loadingMessages: true
+  lab_v2: false
+  override_challenge_layout: false
+  hideStopButton: false
+checksum: "771556436649410531"

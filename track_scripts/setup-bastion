@@ -1,0 +1,30 @@
+#!/bin/bash
+set -eo pipefail
+
+dnf install -y dnf-plugins-core wget
+dnf config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+mkdir -p /opt/{openshift,azure}
+
+# grab the openshift installer and client tools
+pushd /opt/openshift
+
+wget https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-install-linux.tar.gz
+wget https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz
+
+tar -xvf openshift-install-linux.tar.gz
+tar -xvf openshift-client-linux.tar.gz
+
+ln -s /opt/openshift/oc /usr/local/bin/oc
+ln -s /opt/openshift/openshift-install /usr/local/bin/openshift-install
+
+popd
+
+pushd /opt/azure
+
+rpm --import https://packages.microsoft.com/keys/microsoft.asc
+dnf install -y https://packages.microsoft.com/config/rhel/9.0/packages-microsoft-prod.rpm
+dnf install -y azure-cli
+
+popd
+
+exit 0
