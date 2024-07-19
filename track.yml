@@ -8,8 +8,8 @@ owner: hashicorp
 developers:
 - ben.holmes@hashicorp.com
 maintenance: true
-idle_timeout: 300
-timelimit: 1200
+idle_timeout: 3600
+timelimit: 21600
 lab_config:
   overlay: false
   width: 33
@@ -20,4 +20,4 @@ lab_config:
   lab_v2: false
   override_challenge_layout: false
   hideStopButton: false
-checksum: "6684756639397348413"
+checksum: "11730875210346041031"

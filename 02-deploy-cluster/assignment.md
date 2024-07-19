@@ -1,12 +1,13 @@
 ---
-slug: provision-cluster
-id: dyt20wscbfqx
+slug: deploy-cluster
+id: umhsmry2pdni
 type: challenge
-title: Provision Cluster
+title: Deploy Cluster
 tabs:
 - title: Bastion
   type: terminal
   hostname: bastion
+  workdir: /opt/openshift/cluster
 - title: Azure Portal
   type: service
   hostname: cloud-client
@@ -16,9 +17,9 @@ tabs:
   type: code
   hostname: bastion
   path: /opt/openshift/cluster
-difficulty: ""
+difficulty: basic
 ---
 
+Deploy the OpenShift Cluster!
+=============================
 
-👋 Provision the Red Hat OpenShift Container Platform Cluster
-   ==========================================================
