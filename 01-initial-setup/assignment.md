@@ -30,9 +30,7 @@ The cluster will be provisioned using the Full Stack Automation mode, which will
 
 More information can be found [in the documentation](https://docs.openshift.com/container-platform/latest/installing/installing_azure/installing-azure-default.html)
 
-If you'd like to have a look at the `install-config.yaml` file before the installation begins, open the `Configuration` tab, and look inside the `conf` directory for the `install-config.yaml` file.
-
-[button label="Configuration Tab"](tab-2)
+If you'd like to have a look at the `install-config.yaml` file before the installation begins, open the [Configuration tab](tab-2), and look inside the `conf` directory for the `install-config.yaml` file.
 
 > [!NOTE]
 > This file contains all of the options necessary to deploy an OpenShift cluster. If you want to make changes, now is the time to do it!

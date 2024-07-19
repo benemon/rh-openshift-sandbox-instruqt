@@ -23,3 +23,11 @@ difficulty: basic
 Deploy the OpenShift Cluster!
 =============================
 
+Switch to the [Bastion tab](tab-0) and run the following command to deploy the OpenShift cluster based on the configuration defined in the `install-config.yaml`.
+
+```bash,run
+openshift-install create cluster --dir=conf
+```
+
+> [!IMPORTANT]
+> This WILL take a while, usually between 40 and 60 minutes. Go and make a cuppa or something.
