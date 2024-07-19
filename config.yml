@@ -3,7 +3,14 @@ containers:
 - name: bastion
   image: registry.access.redhat.com/ubi9:latest
   shell: /bin/bash
+  environment:
+    TF_VAR_pull_secret: 
   memory: 256
+- name: cloud-client
+  image: gcr.io/instruqt/cloud-client
+  shell: /bin/bash
+  ports:
+  - 80
 azure_subscriptions:
 - name: rh-openshift-sandbox-azure
   roles:

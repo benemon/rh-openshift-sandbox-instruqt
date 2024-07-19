@@ -3,7 +3,7 @@ set -eo pipefail
 
 dnf install -y dnf-plugins-core wget
 dnf config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
-mkdir -p /opt/{openshift,azure}
+mkdir -p /opt/{openshift,azure,terraform}
 
 # grab the openshift installer and client tools
 pushd /opt/openshift
@@ -18,7 +18,7 @@ ln -s /opt/openshift/oc /usr/local/bin/oc
 ln -s /opt/openshift/openshift-install /usr/local/bin/openshift-install
 
 popd
-
+# grab the azure cli
 pushd /opt/azure
 
 rpm --import https://packages.microsoft.com/keys/microsoft.asc
@@ -26,5 +26,8 @@ dnf install -y https://packages.microsoft.com/config/rhel/9.0/packages-microsoft
 dnf install -y azure-cli
 
 popd
+
+# install terraform
+dnf install -y terraform
 
 exit 0

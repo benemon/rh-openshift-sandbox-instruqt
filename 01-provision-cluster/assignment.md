@@ -7,7 +7,16 @@ tabs:
 - title: Bastion
   type: terminal
   hostname: bastion
-difficulty: basic
+- title: Azure Portal
+  type: service
+  hostname: cloud-client
+  path: /
+  port: 80
+- title: Configuration
+  type: code
+  hostname: bastion
+  path: /opt/openshift/cluster
+difficulty: ""
 ---
 
 
