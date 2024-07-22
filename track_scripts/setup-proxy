@@ -1,0 +1,33 @@
+#!/bin/bash
+set -eo pipefail
+##
+# This script is used to setup the proxy host for the OpenShift sandbox...
+##
+
+# Allow instruqt time to inject variables and settings
+until [ -f /opt/instruqt/bootstrap/host-bootstrap-completed ] ; do
+    echo "Waiting for instruqt bootstrap to complete"
+    sleep 1
+done
+
+dnf install -y dnf-plugins-core 
+dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+
+dnf config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+dnf install -y haproxy git wget bind-utils terraform inotify-tools
+
+# allow haproxy to run as haproxy user on port 6443
+setsebool -P haproxy_connect_any=1
+systemctl enable haproxy
+systemctl start haproxy
+
+# Define the configuration files
+GLOBAL_CONFIG_FILE="/etc/haproxy/haproxy.cfg"
+API_CONFIG_FILE="/etc/haproxy/conf.d/haproxy-api.cfg"
+ROUTER_CONFIG_FILE="/etc/haproxy/conf.d/haproxy-router.cfg"
+
+touch $GLOBAL_CONFIG_FILE
+touch $API_CONFIG_FILE
+touch $ROUTER_CONFIG_FILE
+
+exit 0

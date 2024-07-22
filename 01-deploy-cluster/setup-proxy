@@ -1,0 +1,49 @@
+#!/bin/bash
+set -eo pipefail
+
+cat <<'EOF' > /usr/local/bin//monitor_haproxy_configs
+#!/bin/bash
+
+# Define the configuration files
+GLOBAL_CONFIG_FILE="/etc/haproxy/haproxy.cfg"
+API_CONFIG_FILE="/etc/haproxy/conf.d/haproxy-api.cfg"
+ROUTER_CONFIG_FILE="/etc/haproxy/conf.d/haproxy-router.cfg"
+
+# Function to reload HAProxy
+reload_haproxy() {
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - Detected changes in HAProxy configuration. Reloading..."
+  sudo systemctl reload haproxy
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - HAProxy reloaded successfully."
+}
+
+# Monitor configuration files for changes
+inotifywait -m -e close_write,moved_to,create \
+  "$GLOBAL_CONFIG_FILE" \
+  "$API_CONFIG_FILE" \
+  "$ROUTER_CONFIG_FILE" |
+while read -r directory events filename; do
+  reload_haproxy
+done
+EOF
+
+chmod +x /usr/local/bin//monitor_haproxy_configs
+
+cat <<'EOF' > /etc/systemd/system/haproxy-config-watcher.service
+[Unit]
+Description=Monitor HAProxy configuration files for changes
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin//monitor_haproxy_configs
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable haproxy-config-watcher.service
+systemctl start haproxy-config-watcher.service
+
+exit 0

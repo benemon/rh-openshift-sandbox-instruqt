@@ -1,9 +1,18 @@
 #!/bin/bash
 set -eo pipefail
+##
+# This script is used to setup the bastion host for the OpenShift sandbox...
+##
 
-dnf install -y dnf-plugins-core wget
+# Allow instruqt time to inject variables and settings
+until [ -f /opt/instruqt/bootstrap/host-bootstrap-completed ] ; do
+    echo "Waiting for instruqt bootstrap to complete"
+    sleep 1
+done
+
+dnf install -y dnf-plugins-core wget jq
 dnf config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
-mkdir -p /opt/{openshift,azure,terraform}
+mkdir -p /opt/{openshift,azure}
 
 # grab the openshift installer and client tools
 pushd /opt/openshift
@@ -29,5 +38,53 @@ popd
 
 # install terraform
 dnf install -y terraform
+
+##
+# Then we pull down the resources from the instruqt repo and pre-warm the configuration
+##
+
+az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+az account set --subscription $ARM_SUBSCRIPTION_ID
+
+pushd /opt/openshift
+
+mkdir -p cluster/conf
+git clone https://github.com/benemon/rh-openshift-sandbox-instruqt-resources.git
+
+
+echo "export TF_VAR_instruqt_participant_id=$INSTRUQT_PARTICIPANT_ID" >> /etc/profile.d/instruqt-env.sh
+echo "export TF_VAR_resource_group=$INSTRUQT_PARTICIPANT_ID" >> /etc/profile.d/instruqt-env.sh
+echo "export TF_VAR_region=uksouth" >> /etc/profile.d/instruqt-env.sh
+echo "export TF_VAR_base_domain=proxy.$INSTRUQT_PARTICIPANT_ID.instruqt.io" >> /etc/profile.d/instruqt-env.sh
+echo "export TF_VAR_cluster_name=ocp" >> /etc/profile.d/instruqt-env.sh
+echo "export TF_VAR_arm_client_id=$ARM_CLIENT_ID" >> /etc/profile.d/instruqt-env.sh
+echo "export TF_VAR_arm_client_secret=$ARM_CLIENT_SECRET" >> /etc/profile.d/instruqt-env.sh
+echo "export TF_VAR_arm_tenant_id=$ARM_TENANT_ID" >> /etc/profile.d/instruqt-env.sh
+echo "export TF_VAR_arm_subscription_id=$ARM_SUBSCRIPTION_ID" >> /etc/profile.d/instruqt-env.sh
+
+source /etc/profile.d/instruqt-env.sh
+
+##
+# Now we can run the terraform scripts to create the resources
+##
+
+pushd rh-openshift-sandbox-instruqt-resources/terraform/dns
+
+terraform init
+terraform apply -auto-approve
+
+popd
+
+pushd rh-openshift-sandbox-instruqt-resources/terraform/configure
+
+terraform init
+terraform apply -auto-approve
+
+cp output/osServicePrincipal.json.tpl ~/.azure/osServicePrincipal.json
+cp output/install-config.yaml.tpl /opt/openshift/cluster/conf/install-config.yaml
+
+popd
+
+pushd cluster
 
 exit 0

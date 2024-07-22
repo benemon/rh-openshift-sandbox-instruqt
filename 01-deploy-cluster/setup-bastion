@@ -1,0 +1,131 @@
+#!/bin/bash
+set -eo pipefail
+
+cat <<'EOF' > /usr/local/bin/install-openshift-cluster
+#!/bin/bash
+set -eo pipefail
+
+# create the cluster
+source /etc/profile.d/instruqt-env.sh
+pushd /opt/openshift/cluster
+openshift-install create cluster --dir=conf &
+
+echo "Waiting for Resource Group creation..."
+max_retries=10  # Set the maximum number of retries here
+count=0         # Initialize retry counter
+result=""       # Initialize result variable
+
+while [ $count -lt $max_retries ]; do
+    temp_result=$(az group list --query "[?contains(name,'ocp')].name" | jq -r .[])
+    if [[ -n $temp_result ]]; then
+        result=$temp_result
+        echo "Valid response received: $result"
+        break # Exit loop if result is not empty
+    fi
+    count=$((count+1))  # Increment the counter
+    echo "Attempt $count of $max_retries: No valid response yet, retrying in 1 minute..."
+    sleep 60 # Wait for 60 seconds or 1 minute
+done
+
+if [ $count -eq $max_retries ]; then
+    echo "Maximum retries reached without a valid response."
+    # Optional: Handle the failure case here, such as exiting or fallback operations
+fi
+
+echo "Resource Group created: $result"
+echo "export TF_VAR_ocp_rg_name=$result" >> /etc/profile.d/instruqt-env.sh
+source /etc/profile.d/instruqt-env.sh
+
+echo "Waiting for the API Public IP..."
+max_retries=20  # Set the maximum number of retries here
+count=0         # Initialize retry counter
+result=""       # Initialize result variable
+
+while [ $count -lt $max_retries ]; do
+    temp_result=$(az network public-ip list --resource-group $TF_VAR_ocp_rg_name | jq '.[] | select(.tags | to_entries | any(.key | startswith("kubernetes.io_cluster.ocp-"))) | .ipAddress')
+    if [[ -n $temp_result ]]; then
+        result=$temp_result
+        echo "Valid response received: $result"
+        break # Exit loop if result is not empty
+    fi
+    count=$((count+1))  # Increment the counter
+    echo "Attempt $count of $max_retries: No valid response yet, retrying in 1 minute..."
+    sleep 60 # Wait for 60 seconds or 1 minute
+done
+
+if [ $count -eq $max_retries ]; then
+    echo "Maximum retries reached without a valid response."
+    # Optional: Handle the failure case here, such as exiting or fallback operations
+fi
+
+echo "Public API IP created: $result"
+echo "export TF_VAR_public_api_ip=$result" >> /etc/profile.d/instruqt-env.sh
+source /etc/profile.d/instruqt-env.sh
+
+pushd /opt/openshift/rh-openshift-sandbox-instruqt-resources/terraform/proxy
+terraform init
+terraform apply --auto-approve
+scp -o StrictHostKeyChecking=no -q output/haproxy-global.cfg.tpl root@proxy:/etc/haproxy/haproxy.cfg
+scp -o StrictHostKeyChecking=no -q output/haproxy-api.cfg.tpl root@proxy:/etc/haproxy/conf.d/haproxy-api.cfg
+popd
+
+echo "Waiting for the Public Router IP..."
+max_retries=75  # Set the maximum number of retries here
+count=0         # Initialize retry counter
+result=""       # Initialize result variable
+
+while [ $count -lt $max_retries ]; do
+    temp_result=$(az network public-ip list --resource-group $TF_VAR_ocp_rg_name | jq '.[] | select(.tags."k8s-azure-service" == "openshift-ingress/router-default") | .ipAddress')
+    if [[ -n $temp_result ]]; then
+        result=$temp_result
+        echo "Valid response received: $result"
+        break # Exit loop if result is not empty
+    fi
+    count=$((count+1))  # Increment the counter
+    echo "Attempt $count of $max_retries: No valid response yet, retrying in 1 minute..."
+    sleep 60 # Wait for 60 seconds or 1 minute
+done
+
+if [ $count -eq $max_retries ]; then
+    echo "Maximum retries reached without a valid response."
+    # Optional: Handle the failure case here, such as exiting or fallback operations
+fi
+
+echo "Public Router IP created: $result"
+
+echo "export TF_VAR_public_router_ip=$result" >> /etc/profile.d/instruqt-env.sh
+source /etc/profile.d/instruqt-env.sh
+
+pushd /opt/openshift/rh-openshift-sandbox-instruqt-resources/terraform/proxy
+terraform init
+terraform apply --auto-approve
+scp -o StrictHostKeyChecking=no -q output/haproxy-router.cfg.tpl root@proxy:/etc/haproxy/conf.d/haproxy-router.cfg
+popd
+EOF
+
+chmod +x /usr/local/bin/install-openshift-cluster
+
+cat << 'EOF' > /etc/systemd/system/install-openshift-cluster.service
+[Unit]
+Description=Install OpenShift Cluster
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/install-openshift-cluster
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Reload systemd to recognize changes to the service files
+sudo systemctl daemon-reload
+
+# Enable the service to start at boot
+sudo systemctl enable install-openshift-cluster
+
+# Optionally start the service immediately to test
+sudo systemctl start install-openshift-cluster
+
+exit 0

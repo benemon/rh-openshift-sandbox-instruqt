@@ -1,10 +1,10 @@
 slug: rh-openshift-sandbox
-id: jrjmqbkwfkbt
+id: umamjmlhixi6
 title: Red Hat OpenShift Container Platform Sandbox
 description: ""
 icon: ./assets/OpenShift-LogoType.svg
 tags: []
-owner: hashicorp
+owner: hashicorp-field-ops
 developers:
 - ben.holmes@hashicorp.com
 maintenance: true
@@ -20,4 +20,4 @@ lab_config:
   lab_v2: false
   override_challenge_layout: false
   hideStopButton: false
-checksum: "476105266140756067"
+checksum: "7245519675337470437"
