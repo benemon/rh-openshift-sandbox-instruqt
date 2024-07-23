@@ -65,6 +65,9 @@ source /etc/profile.d/instruqt-env.sh
 pushd /opt/openshift/rh-openshift-sandbox-instruqt-resources/terraform/proxy
 terraform init
 terraform apply --auto-approve
+echo ""  >> output/haproxy-global.cfg.tpl
+echo ""  >> output/haproxy-api.cfg.tpl
+
 scp -o StrictHostKeyChecking=no -q output/haproxy-global.cfg.tpl root@proxy:/etc/haproxy/haproxy.cfg
 scp -o StrictHostKeyChecking=no -q output/haproxy-api.cfg.tpl root@proxy:/etc/haproxy/conf.d/haproxy-api.cfg
 popd
@@ -99,12 +102,13 @@ source /etc/profile.d/instruqt-env.sh
 pushd /opt/openshift/rh-openshift-sandbox-instruqt-resources/terraform/proxy
 terraform init
 terraform apply --auto-approve
+echo ""  >> output/haproxy-router.cfg.tpl
 scp -o StrictHostKeyChecking=no -q output/haproxy-router.cfg.tpl root@proxy:/etc/haproxy/conf.d/haproxy-router.cfg
 popd
 
 # writing outputs to a file
 echo "# OpenShift Cluster Outputs" > /opt/openshift/cluster/conf/outputs.txt
-echo "Console: https://console-openshift-console.apps.proxy.$INSTRUQT_PARTICIPANT_ID.instruqt.io" >> /opt/openshift/cluster/conf/outputs.txt
+echo "Console: https://console-openshift-console.apps.ocp.proxy.$INSTRUQT_PARTICIPANT_ID.instruqt.io" >> /opt/openshift/cluster/conf/outputs.txt
 echo "Default User: kubeadmin" >> /opt/openshift/cluster/conf/outputs.txt
 echo "Default Password: $(cat /opt/openshift/cluster/conf/auth/kubeadmin-password)" >> /opt/openshift/cluster/conf/outputs.txt
 echo "KUBECONFIG Path: /opt/openshift/cluster/conf/auth/kubeconfig" >> /opt/openshift/cluster/conf/outputs.txt
@@ -115,6 +119,7 @@ EOF
 
 chmod +x /usr/local/bin/install-openshift-cluster
 
+# this doesn't quite work as expected, but it's close
 cat << 'EOF' > /etc/systemd/system/install-openshift-cluster.service
 [Unit]
 Description=Install OpenShift Cluster
@@ -129,13 +134,7 @@ RemainAfterExit=true
 WantedBy=multi-user.target
 EOF
 
-# Reload systemd to recognize changes to the service files
-sudo systemctl daemon-reload
-
-# Enable the service to start at boot
-sudo systemctl enable install-openshift-cluster
-
-# Optionally start the service immediately to test
-sudo systemctl start install-openshift-cluster
+# reload systemd to recognize changes to the service files
+systemctl daemon-reload
 
 exit 0

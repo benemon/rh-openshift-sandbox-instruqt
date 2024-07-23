@@ -5,9 +5,6 @@ containers:
   shell: /bin/bash
   ports:
   - 80
-virtualbrowsers:
-- name: console-openshift-console
-  url: https://console-openshift-console.apps.ocp.proxy.${_SANDBOX_ID}.instruqt.io
 virtualmachines:
 - name: bastion
   image: rhel-cloud/rhel-9
