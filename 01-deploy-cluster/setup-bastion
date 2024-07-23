@@ -101,6 +101,16 @@ terraform init
 terraform apply --auto-approve
 scp -o StrictHostKeyChecking=no -q output/haproxy-router.cfg.tpl root@proxy:/etc/haproxy/conf.d/haproxy-router.cfg
 popd
+
+# writing outputs to a file
+echo "# OpenShift Cluster Outputs" > /opt/openshift/cluster/conf/outputs.txt
+echo "Console: https://console-openshift-console.apps.proxy.$INSTRUQT_PARTICIPANT_ID.instruqt.io" >> /opt/openshift/cluster/conf/outputs.txt
+echo "Default User: kubeadmin" >> /opt/openshift/cluster/conf/outputs.txt
+echo "Default Password: $(cat /opt/openshift/cluster/conf/auth/kubeadmin-password)" >> /opt/openshift/cluster/conf/outputs.txt
+echo "KUBECONFIG Path: /opt/openshift/cluster/conf/auth/kubeconfig" >> /opt/openshift/cluster/conf/outputs.txt
+
+cat /opt/openshift/cluster/conf/outputs.txt
+
 EOF
 
 chmod +x /usr/local/bin/install-openshift-cluster
