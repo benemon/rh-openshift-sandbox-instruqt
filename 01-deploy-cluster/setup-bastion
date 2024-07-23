@@ -112,8 +112,13 @@ echo "Console: https://console-openshift-console.apps.ocp.proxy.$INSTRUQT_PARTIC
 echo "Default User: kubeadmin" >> /opt/openshift/cluster/conf/outputs.txt
 echo "Default Password: $(cat /opt/openshift/cluster/conf/auth/kubeadmin-password)" >> /opt/openshift/cluster/conf/outputs.txt
 echo "KUBECONFIG Path: /opt/openshift/cluster/conf/auth/kubeconfig" >> /opt/openshift/cluster/conf/outputs.txt
-
 cat /opt/openshift/cluster/conf/outputs.txt
+
+echo "============================================================"
+echo "PLEASE NOTE THAT CLUSTER DEPLOYMENT IS STILL IN PROGRESS. IT WILL TAKE A FEW MORE MINUTES TO COMPLETE."
+echo ""
+echo "YOU CAN MONITOR THE PROGRESS BY RUNNING 'tail -f /opt/openshift/cluster/conf/.openshift_install.log'"
+echo "============================================================"
 
 EOF
 
