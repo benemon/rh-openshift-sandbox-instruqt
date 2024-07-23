@@ -84,3 +84,12 @@ The Bastion host comes preloaded with the OpenShift command line tools, which ca
 oc
 ```
 
+Cleaning Up
+===========
+If you want to tear down the OpenShift cluster and end the track gracefully, please copy and paste the command below.
+
+```bash,run
+export=CONFIRM_CLEANUP
+```
+
+Once done, you can click "Check" to finish.

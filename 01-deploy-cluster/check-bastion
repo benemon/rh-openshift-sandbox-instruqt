@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -eo pipefail
+
+grep -q "export=CONFIRM_CLEANUP" /root/.bash_history || fail-message "You have not written export=CONFIRM_CLEANUP into the workstation terminal. Doing so and clicking check will tear down the OpenShift cluster and end the track."
+
+exit 0
